@@ -128,7 +128,7 @@ exports.handler = async function(event, context) {
             if (giverEmail) {
                 const msg = {
                     to: giverEmail,
-                    from: `Secret Santa Admin <mail@${mailgunDomain}>`,
+                    from: `Secret Santa <santa@${mailgunDomain}>`,
                     subject: 'Your New Secret Santa Assignment!',
                     html: `
                         <div style="font-family: sans-serif; font-size: 16px; color: #333;">

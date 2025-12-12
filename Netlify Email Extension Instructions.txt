@@ -1,0 +1,419 @@
+---
+title: "Netlify Email Integration"
+description: "Netlify Email Integration handles email requests using functions that populate versioned templates and connect with external email API providers."
+---
+
+The Netlify Email Integration connects your Netlify site with popular, API-driven email services and allows you to manage version-controlled email templates alongside the rest of your project code. Use the Netlify Email Integration to generate email function handlers that populate custom email templates and send emails using a specified email API provider.
+
+## Before you begin
+
+- Set up an account with one of the supported email providers listed below. The integration uses an email API.
+- Ensure your account is verified by the email API provider.
+- Ensure that you have provided authorization to send emails from the email address you wish to use as the sender.
+- Note your API key from your email API provider.
+
+## Supported email providers
+
+You can use the Netlify Email Integration to connect your Netlify site with email APIs from these providers:
+
+- [Mailgun](https://www.mailgun.com/)
+- [Postmark](https://postmarkapp.com/)
+- [SendGrid](https://sendgrid.com/)
+
+## Enable Netlify Email Integration for your site
+
+The Netlify Email Integration is automatically installed on all teams, so you just need to enable it on the individual sites you want to use it with.
+
+Follow these steps to enable the Netlify Email Integration for your site using the Netlify UI or file-based installation.
+
+### Enable with the Netlify UI
+
+1. In the Netlify UI, under **Sites**, select the site you'd like to enable the Netlify Email Integration on.
+2. Navigate to 
+### NavigationPath Component:
+
+Project configuration > Emails > Configuration
+.
+3. Select **Enable email extension**.
+4. Complete the setup:
+
+   - select an **Emails provider**
+   - enter an **Emails provider API key**
+   - if you're using Mailgun, enter the **Mailgun domain** and **Mailgun host region**
+   - optionally, set a custom **Emails directory**
+
+   Then select **Save**.
+
+5. Deploy your site so that you can use the integration.
+
+### Enable with `netlify.toml`
+
+1. Add the integration to the `plugins` section of a `netlify.toml` file stored in your site's [base directory](/build/configure-builds/overview#definitions-1).
+
+   ```toml
+   [[plugins]]
+     package = "@netlify/plugin-emails"
+   ```
+
+2. Add the [required environment variables](#required-environment-variables). We recommend [using the Netlify UI, CLI, or API](/build/environment-variables/get-started/#create-variables-with-the-netlify-ui-cli-or-api) for this step.
+
+3. Deploy your site so that you can use the integration.
+
+### Required environment variables
+
+When enabling the integration using `netlify.toml`, certain environment variables are required to complete initial configuration. If you have the option to set specific [scopes](/build/environment-variables/overview#scopes) for your environment variables, the scope must include both **Builds** and **Functions** to be available to the build system and to functions.
+
+| Variable Name                        | Description                                                                            | Required        |
+| ------------------------------------ | -------------------------------------------------------------------------------------- | --------------- |
+| `NETLIFY_EMAILS_PROVIDER`            | Valid values: <br/>`mailgun` <br/> `sendgrid` <br/>`postmark`                             | Yes             |
+| `NETLIFY_EMAILS_PROVIDER_API_KEY`    | API key issued by the email provider                                                   | Yes             |
+| `NETLIFY_EMAILS_SECRET`              | Unique secret used to authenticate that a request to the email API provider is genuine | Yes             |
+| `NETLIFY_EMAILS_MAILGUN_DOMAIN`      | Domain used by Mailgun                                                                 | Yes, if Mailgun |
+| `NETLIFY_EMAILS_MAILGUN_HOST_REGION` | Valid values: <br/>`non-eu` <br/>`eu`                                                    | Yes, if Mailgun |
+| `NETLIFY_EMAILS_DIRECTORY`           | The default directory path is `./emails` but you can set this variable to change it    | No              |
+
+## Add email templates
+
+To add an email template, add a file at the appropriate location and set up the contents and styling for the template.
+
+### Add a template file
+
+To add an email template to your project:
+
+1. Create an `emails` directory in the [base directory](/build/configure-builds/overview#definitions-1) for your project.
+2. Create a subdirectory for your template. The subdirectory name should represent the expected route of your template.
+3. Create an `index.html` file within the subdirectory. Alternatively, you can [create your own template using MJML](/extend/install-and-use/setup-guides/email-integration#create-a-template-with-mjml).
+
+Here's an example file structure for a `subscribed` email:
+
+```
+repository-root or base directory/
+├─ emails/
+│  └─ subscribed/
+│   └─ index.html
+└─
+```
+
+The default emails directory is `YOUR_BASE_DIRECTORY/emails`.
+
+To optionally configure a custom emails directory, set the `NETLIFY_EMAILS_DIRECTORY` [environment variable](#required-environment-variables) or update the directory value in the Netlify UI:
+
+1. Visit 
+### NavigationPath Component:
+
+Project configuration > Emails > Configuration
+.
+2. Select **Configure** and enter a custom **Emails directory**.
+
+### Add HTML to the template
+
+The template file accepts HTML and must include `<html>` and `<body>` tags.
+
+If you want to use variables in your email template, you can use [handlebars.js](https://handlebarsjs.com/) syntax and pass the arguments in the request. The variable values will be injected when the email is triggered.
+
+Here's a sample email with a parameter:
+
+```html
+<html>
+  <body>
+    <h1>Welcome, {{name}}</h1>
+    <p>We hope you enjoy our super simple emails!</p>
+    <p>Thanks for subscribing!</p>
+  </body>
+</html>
+```
+
+### Style the template
+
+You can also add custom styling to your templates. To do this, add inline CSS blocks using the `style` attribute inside the HTML elements of your template file.
+
+```html
+<html>
+  <body
+    style="
+      font-family: 'Open Sans', 'Helvetica Neue', sans-serif;
+      margin: 0 auto;
+    "
+  >
+    <div
+      style="
+        background-color: white;
+        display: inline-block;
+        text-align: center;
+      "
+    >
+      <h1>{{name}} has RSVP'd</h1>
+      <button style="border-radius: 10px;">
+        Visit dashboard
+      </button>
+    </div>
+  </body>
+</html>
+```
+
+### Create a template with MJML
+
+The Netlify Email Integration supports templates created with [MJML](https://mjml.io/). MJML enables you to create templates that are responsive and compliant across most browsers. To create an email template using MJML, save your [template file](#add-a-template-file) as `index.mjml` instead of `index.html`.
+
+Visit the [MJML documentation](https://documentation.mjml.io/) to learn more about styling your template.
+
+### Preview email templates
+
+You can preview your email templates during the development process by launching the Preview UI.
+
+The Preview UI generates the template-specific code snippets you'll need to send a request to the email handler when you [trigger the email](/extend/install-and-use/setup-guides/email-integration#trigger-an-email-from-your-code). Use the [Netlify CLI](/api-and-cli-guides/cli-guides/get-started-with-cli) to launch the Preview UI and generate this code.
+
+1. Ensure you have the latest version of Netlify CLI installed:
+
+   ```bash
+   npm install netlify-cli -g
+   ```
+
+2. Build your project.
+
+   ```bash
+   netlify build
+   ```
+
+3. Launch [Netlify Dev](/api-and-cli-guides/cli-guides/local-development) to start a development environment that can run your email preview:
+
+   ```bash
+   netlify dev
+   ```
+
+4. Visit [`http://localhost:8888/.netlify/functions/emails`](http://localhost:8888/.netlify/functions/emails) to launch the Preview UI.
+
+   The preview endpoint is not available in production and is only made available locally through Netlify Dev.
+
+5. Select your email template from the template list.
+
+   ![open preview of email template.](/images/email-integration-preview-email-template.png)
+
+### Send a test email from the Preview UI
+
+When you [launch the preview](#preview-email-templates), you can send a test email directly from the Preview UI. To trigger the test email:
+
+1. Select the email template you plan to test from the available templates.
+2. Optionally, enter any parameters you'd like to preview.
+3. Select **Send test email**.
+4. Enter your **subject**, **to**, and **from** parameters.
+5. Select **Send**, which will send the email from your email provider.
+
+## Trigger an email from your code
+
+When you [preview your email template](#preview-email-templates), Netlify generates two code snippets that you can use to trigger an email:
+
+- **`@netlify/emails`:** snippet that utilizes a package
+- **`fetch`:** snippet that contains the raw [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch) route and an environment variable
+
+![preview of email template with generated fetch function.](/images/email-integration-trigger-email-from-code.png)
+
+To trigger an email directly from your project code, copy and paste your preferred snippet into your project and populate the parameters for your email.
+
+### Create a function to send the email
+
+Because the snippet [generated in the preview](#preview-email-templates) contains an environment variable, `NETLIFY_EMAILS_SECRET`, we recommend pasting the code snippet into a [Netlify Function](/build/functions/overview) to avoid sharing sensitive information in client-side code.
+
+You can learn more about the format of functions on the [get started with functions](/build/functions/get-started). The function file should be in your `netlify/functions` directory. Following the `fetch` code example below, this example file's path would be `netlify/functions/triggerSubscribeEmail.ts`.
+
+```ts
+import type { Handler } from "@netlify/functions";
+import fetch from "node-fetch";
+
+const handler: Handler = async function(event) {
+  if (event.body === null) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify("Payload required"),
+    };
+  }
+
+  const requestBody = JSON.parse(event.body) as {
+    subscriberName: string;
+    subscriberEmail: string;
+    inviteeEmail: string;
+  };
+
+  //automatically generated snippet from the email preview
+  //sends a request to an email handler for a subscribed email
+  await fetch(`${process.env.URL}/.netlify/functions/emails/subscribed`, {
+    headers: {
+      "netlify-emails-secret": process.env.NETLIFY_EMAILS_SECRET as string,
+    },
+    method: "POST",
+    body: JSON.stringify({
+      from: requestBody.inviteeEmail,
+      to: requestBody.subscriberEmail,
+      subject: "You've been subscribed",
+      parameters: {
+        name: requestBody.subscriberName,
+        email: requestBody.subscriberEmail,
+      },
+    }),
+  });
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify("Subscribe email sent!"),
+  };
+};
+
+export { handler };
+```
+
+Next, you'll add an event in your code to call this function.
+
+### Call the function from an event
+
+There are many approaches you can take to triggering an email. For example:
+
+- A user clicks a button requesting information, subscribing to a newsletter, or updating their profile.
+- A user scrolls to the bottom of a blog post so you trigger an email to send them more information on that post subject or other posts.
+- A data event has reached a certain amount and you would like an email sent to notify your users.
+
+Here's an example of the code to attach the email trigger to a `Subscribe` button in a [Next.js](/build/frameworks/framework-setup-guides/nextjs/legacy-runtime/overview) app. In this React example, the parameters for the template are set using user input from the form on the page. With this process, you can populate the parameters of your email templates with any data being passed to your site, like a form or data from API calls to a user database.
+
+```tsx
+export default function Subscribe() {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const target = event.target as typeof event.target & {
+      name: { value: string };
+      email: { value: string };
+    };
+
+    const data = {
+      subscriberName: target.name,
+      subscriberEmail: target.email
+    };
+    //call to the Netlify Function you created
+    fetch("./.netlify/functions/triggerSubscribeEmail", {
+      method: "POST",
+      body: JSON.stringify({
+        subscriberName: data.subscriberName,
+        subscriberEmail: data.subscriberEmail,
+        inviteeEmail: "info@netlify.com"
+      })
+    });
+  };
+  return (
+    <div className="subscribe-form-container">
+      <form onSubmit={handleSubmit}>
+        <label htmlFor="name">Name</label>
+        <input type="text" id="name" name="name" required />
+        <label htmlFor="email">Email</label>
+        <input type="text" id="email" name="email" required />
+        <button type="submit">Subscribe</button>
+      </form>
+    </div>
+  );
+}
+```
+
+When the event is triggered, this invokes the function and the fetch call to an email handler. This handler prompts the email API service you configured to send the email.
+
+## Add attachments to your email
+
+When sending messages, you can also specify any files you'd like to attach.
+
+1. Make sure any files you plan to attach to an email are included when the function that sends the email is built and deployed. For example, to attach a PDF file saved in an `assets` directory, the project file structure could include a section like this:
+
+   ```
+   ├─ netlify/
+   │  └─functions/
+   │   └─ function.js
+   │   └─ assets/
+   │     └─ example.pdf
+   └─package.json
+   ```
+
+   In this example, any PDF files in the `assets` directory would be included with the function using this `netlify.toml` entry:
+
+   ```toml
+   [functions]
+   [function."function"]
+     included_files = ["./nelify/functions/assets/*.pdf"]
+   ```
+
+   You can learn more in our blog post about [including files in serverless functions](https://www.netlify.com/blog/2021/08/12/how-to-include-files-in-netlify-serverless-functions/).
+
+2. Using the snippet generated during the [email preview](#preview-email-templates), add the `attachments` property to the request `body`. The `attachments` property is an array that may contain three properties to attach your file: `content`, `filename`, and `type`.
+
+   | Property Name | Type     | Description                                         | Required         |
+   | ------------- | -------- | --------------------------------------------------- | ---------------- |
+   | `content`     | `string` | Base64 encoded string of the file                   | Yes              |
+   | `filename`    | `string` | The name of the file as it will appear in the email | Yes              |
+   | `type`        | `string` | The MIME type of content you are attaching          | Yes, if Postmark |
+
+   Using the example project setup above, the following handler function parses the PDF file saved in the `assets` directory. Nested in the `body` object is an `attachments` array that lists the `content`, `filename`, and `type` properties for that file.
+
+   ```tsx
+   import type { Handler } from "@netlify/functions";
+   import fetch from "node-fetch";
+   import {readFileSync} from "fs";
+   import {resolve} from "path";
+
+   const handler: Handler = async () => {
+     const file = readFileSync(resolve("./assets/example.pdf"), ".").toString("base64");
+     const response = await fetch(
+       `${process.env.URL}/.netlify/functions/emails/forgotten-password`,
+       {
+         headers: {
+           "netlify-emails-secret": process.env.NETLIFY_EMAILS_SECRET,
+         },
+         method: "POST",
+         body: JSON.stringify({
+           from: "sender@myemailsender.com",
+           cc: "recipient@youremail.com",
+           to: "recipient@youremail.com",
+           subject: "Password Reset",
+           attachments: [
+               {
+               content: file,
+               filename: "example.pdf",
+               type: "pdf",
+             }
+           ],
+           parameters: {
+             name: "Test",
+           }
+         })
+       }
+     );
+
+     const responseBody = await response.json();
+
+     return (
+       statusCode: response.status,
+       body: JSON.stringify(responseBody)
+     );
+   };
+
+   export { handler };
+   ```
+
+Refer to your email provider's documentation to verify which types of content are valid for an attachment.
+
+- [Mailgun](https://documentation.mailgun.com/docs/mailgun/user-manual/sending-messages/)
+- [Postmark](https://postmarkapp.com/developer/user-guide/send-email-with-api)
+- [Sendgrid](https://www.twilio.com/docs/sendgrid/api-reference/mail-send/mail-send#request-body)
+
+## Limitations
+
+Functions that call other functions on password-protected sites will get an error when calling the next function. If you're using a password-protected site, you'll likely receive a 401 error from your function that calls the email function. To avoid receiving this error, you need to forward the cookie from the initial function on to the email function.
+
+Here is an example of a workaround for this limitation:
+
+```tsx
+  const cookie = event.headers["Cookie"] || event.headers["cookie"];
+
+  // Send netlify email with fetch
+  const response = await fetch(
+    `${process.env.URL}/.netlify/functions/emails/the-template-name`,
+    {
+      method: "POST",
+      headers: {
+        cookie,
+        "netlify-emails-secret": process.env.NETLIFY_EMAILS_SECRET as string,
+      },
+```

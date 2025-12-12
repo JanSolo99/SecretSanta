@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "mailgun.js": "^12.4.0"
+    "node-fetch": "^2.7.0"
   }
 }

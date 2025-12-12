@@ -1,2 +1,4 @@
 [build]
   functions = "netlify/functions"
+[[plugins]]
+  package = "@netlify/plugin-emails"

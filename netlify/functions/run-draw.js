@@ -1,15 +1,6 @@
-const formData = require('form-data');
-const Mailgun = require('mailgun.js');
 const fs = require('fs');
 const path = require('path');
-
-// Initialize Mailgun client
-const mailgun = new Mailgun(formData);
-const mg = mailgun.client({
-    username: 'api',
-    key: process.env.MAILGUN_API_KEY,
-});
-const mailgunDomain = process.env.MAILGUN_DOMAIN;
+const fetch = require('node-fetch');
 
 // Helper function to shuffle an array
 function shuffle(array) {
@@ -25,12 +16,13 @@ exports.handler = async function(event, context) {
         return { statusCode: 405, body: 'Method Not Allowed' };
     }
 
-    if (!process.env.MAILGUN_API_KEY || !process.env.MAILGUN_DOMAIN) {
+    // The Netlify Email Integration requires these variables to be set
+    if (!process.env.NETLIFY_EMAILS_PROVIDER || !process.env.NETLIFY_EMAILS_SECRET) {
         return {
             statusCode: 500,
             body: JSON.stringify({
                 success: false,
-                message: "Mailgun API Key or Domain is not set in environment variables."
+                message: "Required email environment variables are not set. Please configure the Netlify Email Integration."
             }),
         };
     }
@@ -121,32 +113,36 @@ exports.handler = async function(event, context) {
         const finalAssignments = [...lockedPairs, ...newAssignments];
         const emailPromises = [];
 
-        finalAssignments.forEach(pair => {
+        // URL is a built-in Netlify environment variable
+        const emailEndpoint = `${process.env.URL}/.netlify/functions/emails/assignment`;
+
+        for (const pair of finalAssignments) {
             const { giver, receiver } = pair;
             const giverEmail = emailMap[giver] || Object.values(submissions).find(s => s['submitter-name'] === giver)?.['submitter-email'];
 
             if (giverEmail) {
-                const msg = {
+                const emailPayload = {
+                    from: `santa@${process.env.NETLIFY_EMAILS_MAILGUN_DOMAIN}`,
                     to: giverEmail,
-                    from: `Secret Santa <santa@${mailgunDomain}>`,
                     subject: 'Your New Secret Santa Assignment!',
-                    html: `
-                        <div style="font-family: sans-serif; font-size: 16px; color: #333;">
-                            <h2>Hi ${giver},</h2>
-                            <p>The Secret Santa assignments have been corrected! Thank you for your patience.</p>
-                            <p>Your new, official, final assignment is:</p>
-                            <h1 style="font-size: 28px; color: #d9534f;">${receiver}</h1>
-                            <p>Happy gifting!</p>
-                            <br>
-                            <p><em>(This is an automated message. Please do not reply.)</em></p>
-                        </div>
-                    `,
+                    parameters: {
+                        giver: giver,
+                        receiver: receiver,
+                    },
                 };
-                emailPromises.push(mg.messages.create(mailgunDomain, msg));
+
+                const promise = fetch(emailEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'netlify-emails-secret': process.env.NETLIFY_EMAILS_SECRET,
+                    },
+                    body: JSON.stringify(emailPayload),
+                });
+                emailPromises.push(promise);
             } else {
                 console.warn(`Could not find email for giver: ${giver}`);
             }
-        });
+        }
 
         await Promise.all(emailPromises);
 
@@ -154,7 +150,7 @@ exports.handler = async function(event, context) {
             statusCode: 200,
             body: JSON.stringify({ 
                 success: true,
-                message: `Successfully processed the draw. ${finalAssignments.length} assignments were finalized and ${emailPromises.length} emails were sent.`,
+                message: `Successfully processed the draw. ${finalAssignments.length} assignments were finalized and ${emailPromises.length} emails were queued for sending.`,
                 assignments: finalAssignments 
             }),
         };

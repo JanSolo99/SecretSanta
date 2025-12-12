@@ -1,24 +1,24 @@
 [
   {
-    "submitter-name": "Robin",
-    "submitter-email": "robin@example.com",
-    "receiver-1-name": "Steven",
+    "submitter-name": "Jan",
+    "submitter-email": "jtedingvberkh@gmail.com",
+    "receiver-1-name": "Erica",
     "gift-purchased-1": "true",
     "receiver-2-name": "",
     "gift-purchased-2": ""
   },
   {
     "submitter-name": "Steven",
-    "submitter-email": "steven@example.com",
+    "submitter-email": "jtedingvberkh@gmail.com",
     "receiver-1-name": "Emily",
     "gift-purchased-1": "false",
     "receiver-2-name": "",
     "gift-purchased-2": ""
   },
     {
-    "submitter-name": "Jan",
-    "submitter-email": "jan@example.com",
-    "receiver-1-name": "Steven",
+    "submitter-name": "Erica",
+    "submitter-email": "jtedingvberkh@gmail.com",
+    "receiver-1-name": "Emily",
     "gift-purchased-1": "false",
     "receiver-2-name": "",
     "gift-purchased-2": ""

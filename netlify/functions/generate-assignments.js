@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const fetch = require('node-fetch');
 
 // Helper function to parse CSV data into an array of objects
 function parseCSV(csvData) {
@@ -32,16 +31,6 @@ exports.handler = async function(event, context) {
         return { statusCode: 405, body: 'Method Not Allowed' };
     }
 
-    if (!process.env.NETLIFY_EMAILS_PROVIDER || !process.env.NETLIFY_EMAILS_SECRET) {
-        return {
-            statusCode: 500,
-            body: JSON.stringify({
-                success: false,
-                message: "Required email environment variables are not set. Please configure the Netlify Email Integration."
-            }),
-        };
-    }
-
     try {
         // 1. SETUP: Load participants and submission data from CSV
         const participantsPath = path.resolve(__dirname, '../../participants.json');
@@ -55,16 +44,13 @@ exports.handler = async function(event, context) {
         const lockedPairs = [];
         const lockedGivers = new Set();
         const lockedReceivers = new Set();
-        const emailMap = {};
 
         for (const sub of submissions) {
             const giver = sub['submitter-name'];
-            emailMap[giver] = sub['submitter-email'];
 
             const processAssignment = (receiverName, giftPurchased) => {
                 if (receiverName && giftPurchased === 'true') {
                     if (allParticipants.includes(giver) && allParticipants.includes(receiverName)) {
-                        // NEW: Check for duplicate locked receivers
                         if (lockedReceivers.has(receiverName)) {
                             throw new Error("Conflict: More than one person has purchased a gift for the same receiver. Manual intervention is required.");
                         }
@@ -120,40 +106,14 @@ exports.handler = async function(event, context) {
             throw new Error("Failed to find a valid assignment without self-pairing after 100 attempts.");
         }
 
-        // 4. OUTPUT & DELIVERY
+        // 4. OUTPUT
         const finalAssignments = [...lockedPairs, ...newAssignments];
-        const emailPromises = [];
-        const emailEndpoint = `${process.env.URL}/.netlify/functions/emails/assignment`;
-
-        for (const pair of finalAssignments) {
-            const { giver, receiver } = pair;
-            const giverEmail = emailMap[giver];
-
-            if (giverEmail) {
-                const emailPayload = {
-                    from: `santa@${process.env.NETLIFY_EMAILS_MAILGUN_DOMAIN}`,
-                    to: giverEmail,
-                    subject: 'Your New Secret Santa Assignment!',
-                    parameters: { giver, receiver },
-                };
-                const promise = fetch(emailEndpoint, {
-                    method: 'POST',
-                    headers: { 'netlify-emails-secret': process.env.NETLIFY_EMAILS_SECRET },
-                    body: JSON.stringify(emailPayload),
-                });
-                emailPromises.push(promise);
-            } else {
-                console.warn(`Could not find email for giver: ${giver}`);
-            }
-        }
-
-        await Promise.all(emailPromises);
 
         return {
             statusCode: 200,
-            body: JSON.stringify({
+            body: JSON.stringify({ 
                 success: true,
-                message: `Successfully processed the draw. ${finalAssignments.length} assignments were finalized and ${emailPromises.length} emails were queued for sending.`, 
+                message: `Successfully generated ${finalAssignments.length} assignments.`, 
                 assignments: finalAssignments 
             }),
         };
@@ -162,11 +122,10 @@ exports.handler = async function(event, context) {
         console.error('Error executing function:', error);
         return {
             statusCode: 500,
-            body: JSON.stringify({
+            body: JSON.stringify({ 
                 success: false,
                 message: `An error occurred: ${error.message}`
             }),
         };
     }
 };
-

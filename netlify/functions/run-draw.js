@@ -1,10 +1,15 @@
-const sgMail = require('@sendgrid/mail');
+const formData = require('form-data');
+const Mailgun = require('mailgun.js');
 const fs = require('fs');
 const path = require('path');
 
-// Set the SendGrid API key from environment variables.
-// The user MUST set this in their Netlify project settings.
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+// Initialize Mailgun client
+const mailgun = new Mailgun(formData);
+const mg = mailgun.client({
+    username: 'api',
+    key: process.env.MAILGUN_API_KEY,
+});
+const mailgunDomain = process.env.MAILGUN_DOMAIN;
 
 // Helper function to shuffle an array
 function shuffle(array) {
@@ -18,6 +23,16 @@ function shuffle(array) {
 exports.handler = async function(event, context) {
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: 'Method Not Allowed' };
+    }
+
+    if (!process.env.MAILGUN_API_KEY || !process.env.MAILGUN_DOMAIN) {
+        return {
+            statusCode: 500,
+            body: JSON.stringify({
+                success: false,
+                message: "Mailgun API Key or Domain is not set in environment variables."
+            }),
+        };
     }
 
     try {
@@ -113,7 +128,7 @@ exports.handler = async function(event, context) {
             if (giverEmail) {
                 const msg = {
                     to: giverEmail,
-                    from: 'secretsanta@example.com', // NOTE: This must be a verified sender on your SendGrid account
+                    from: `Secret Santa Admin <mail@${mailgunDomain}>`,
                     subject: 'Your New Secret Santa Assignment!',
                     html: `
                         <div style="font-family: sans-serif; font-size: 16px; color: #333;">
@@ -127,7 +142,7 @@ exports.handler = async function(event, context) {
                         </div>
                     `,
                 };
-                emailPromises.push(sgMail.send(msg));
+                emailPromises.push(mg.messages.create(mailgunDomain, msg));
             } else {
                 console.warn(`Could not find email for giver: ${giver}`);
             }

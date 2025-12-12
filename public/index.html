@@ -10,7 +10,13 @@
     <div class="container mt-5">
         <h1>Secret Santa Draw Reporting</h1>
         <p>Please enter the name(s) you were assigned in the original draw. This information is required to fix the assignments. Your previous pairings will be kept if you've already purchased a gift.</p>
-        <form name="submissions" method="POST" data-netlify="true" action="/thank-you">
+        <form name="submissions" method="POST" data-netlify="true" data-netlify-honeypot="bot-field">
+            <!-- This is a hidden field for Netlify's spam protection -->
+            <input type="hidden" name="form-name" value="submissions" />
+            <p class="hidden">
+                <label>Don’t fill this out if you’re human: <input name="bot-field" /></label>
+            </p>
+
             <div class="form-group">
                 <label for="submitter-name">Your Name</label>
                 <select class="form-control" id="submitter-name" name="submitter-name" required>
@@ -72,5 +78,24 @@
             <button type="submit" class="btn btn-primary">Submit My Draw</button>
         </form>
     </div>
+
+    <script>
+      const handleSubmit = (event) => {
+        event.preventDefault();
+        
+        const myForm = event.target;
+        const formData = new FormData(myForm);
+        
+        fetch("/", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams(formData).toString(),
+        })
+        .then(() => window.location.href = '/thank-you')
+        .catch((error) => alert(error));
+      };
+      
+      document.querySelector("form").addEventListener("submit", handleSubmit);
+    </script>
 </body>
 </html>

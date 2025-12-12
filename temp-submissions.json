@@ -1,40 +1,24 @@
 [
   {
-    "submitter-name": "Erica",
-    "submitter-email": "erica@example.com",
-    "receiver-1-name": "Adam",
-    "gift-purchased-1": "true",
-    "receiver-2-name": "Charlotte",
-    "gift-purchased-2": "false"
-  },
-  {
-    "submitter-name": "Mom",
-    "submitter-email": "mom@example.com",
-    "receiver-1-name": "Erica",
+    "submitter-name": "Robin",
+    "submitter-email": "robin@example.com",
+    "receiver-1-name": "Steven",
     "gift-purchased-1": "true",
     "receiver-2-name": "",
     "gift-purchased-2": ""
   },
   {
-    "submitter-name": "James",
-    "submitter-email": "james@example.com",
-    "receiver-1-name": "Erica",
+    "submitter-name": "Steven",
+    "submitter-email": "steven@example.com",
+    "receiver-1-name": "Emily",
     "gift-purchased-1": "false",
     "receiver-2-name": "",
     "gift-purchased-2": ""
   },
-  {
-    "submitter-name": "Adam",
-    "submitter-email": "adam@example.com",
-    "receiver-1-name": "Mom",
-    "gift-purchased-1": "false",
-    "receiver-2-name": "",
-    "gift-purchased-2": ""
-  },
-  {
-    "submitter-name": "Charlotte",
-    "submitter-email": "charlotte@example.com",
-    "receiver-1-name": "James",
+    {
+    "submitter-name": "Jan",
+    "submitter-email": "jan@example.com",
+    "receiver-1-name": "Steven",
     "gift-purchased-1": "false",
     "receiver-2-name": "",
     "gift-purchased-2": ""

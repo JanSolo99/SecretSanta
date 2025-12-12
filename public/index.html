@@ -10,7 +10,7 @@
     <div class="container mt-5">
         <h1>Secret Santa Draw Reporting</h1>
         <p>Please enter the name(s) you were assigned in the original draw. This information is required to fix the assignments. Your previous pairings will be kept if you've already purchased a gift.</p>
-        <form name="submissions" method="POST" data-netlify="true" data-netlify-honeypot="bot-field">
+        <form name="submissions" method="POST" action="/thank-you" data-netlify="true" data-netlify-honeypot="bot-field">
             <!-- This is a hidden field for Netlify's spam protection -->
             <input type="hidden" name="form-name" value="submissions" />
             <p class="hidden">

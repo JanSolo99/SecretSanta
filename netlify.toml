@@ -1,5 +1,5 @@
 [functions]
-  included_files = ["participants.json", "temp-submissions.json"]
+  included_files = ["participants.json", "temp-submissions.csv"]
 
 [build]
   functions = "netlify/functions"

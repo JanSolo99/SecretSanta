@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Run Secret Santa Draw</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Admin Panel</h1>
+        <div id="login-section">
+            <p>Enter the password to run the draw.</p>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" class="form-control" id="password">
+            </div>
+            <button class="btn btn-primary" onclick="login()">Login</button>
+        </div>
+
+        <div id="draw-section" style="display: none;">
+            <p>Click the button below to finalize the Secret Santa assignments and send the emails.</p>
+            <button id="run-draw-btn" class="btn btn-danger">Run Final Draw</button>
+            <div id="response" class="mt-3"></div>
+        </div>
+    </div>
+
+    <script>
+        function login() {
+            const password = document.getElementById('password').value;
+            // Super simple password check, as per the brief.
+            if (password === 'santa2025') {
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('draw-section').style.display = 'block';
+            } else {
+                alert('Incorrect password.');
+            }
+        }
+
+        document.getElementById('run-draw-btn').addEventListener('click', () => {
+            const btn = document.getElementById('run-draw-btn');
+            const responseDiv = document.getElementById('response');
+            
+            btn.disabled = true;
+            btn.textContent = 'Running...';
+            responseDiv.textContent = 'Processing the draw. Please wait.';
+
+            fetch('/.netlify/functions/run-draw', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                responseDiv.textContent = data.message || 'An unknown error occurred.';
+                if(data.success) {
+                    responseDiv.className = 'alert alert-success mt-3';
+                } else {
+                    responseDiv.className = 'alert alert-danger mt-3';
+                }
+                btn.textContent = 'Run Final Draw'; // Keep it disabled after running once.
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                responseDiv.textContent = 'An error occurred while running the draw. Check the console for details.';
+                responseDiv.className = 'alert alert-danger mt-3';
+                btn.disabled = false;
+                btn.textContent = 'Run Final Draw';
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secret Santa - Report Your Draw</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Secret Santa Draw Reporting</h1>
+        <p>Please enter the name(s) you were assigned in the original draw. This information is required to fix the assignments. Your previous pairings will be kept if you've already purchased a gift.</p>
+        <form name="submissions" method="POST" data-netlify="true">
+            <div class="form-group">
+                <label for="submitter-name">Your Name</label>
+                <input type="text" class="form-control" id="submitter-name" name="submitter-name" required>
+            </div>
+            <div class="form-group">
+                <label for="submitter-email">Your Email</label>
+                <input type="email" class="form-control" id="submitter-email" name="submitter-email" required>
+                <small class="form-text text-muted">Your new assignment will be sent here.</small>
+            </div>
+            <hr>
+            <h5>Assignment 1</h5>
+            <div class="form-group">
+                <label for="receiver-1-name">Who did you draw?</label>
+                <input type="text" class="form-control" id="receiver-1-name" name="receiver-1-name" required>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="gift-purchased-1" name="gift-purchased-1" value="true">
+                <label class="form-check-label" for="gift-purchased-1">I have already purchased a gift for this person.</label>
+            </div>
+            <hr>
+            <h5>Assignment 2 (Optional)</h5>
+            <p class="text-muted">If you were accidentally assigned a second person (like Erica), please enter their name below.</p>
+            <div class="form-group">
+                <label for="receiver-2-name">Who was the second person you drew?</label>
+                <input type="text" class="form-control" id="receiver-2-name" name="receiver-2-name">
+            </div>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="gift-purchased-2" name="gift-purchased-2" value="true">
+                <label class="form-check-label" for="gift-purchased-2">I have already purchased a gift for this second person.</label>
+            </div>
+            <hr>
+            <button type="submit" class="btn btn-primary">Submit My Draw</button>
+        </form>
+    </div>
+</body>
+</html>
